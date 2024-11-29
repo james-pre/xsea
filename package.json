@@ -5,12 +5,12 @@
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"keywords": [],
-	"bin": "dist/cli.js",
+	"bin": {
+		"xsea": "dist/cli.js"
+	},
 	"files": [
 		"dist",
-		"src",
-		"license.md",
-		"tsconfig.json"
+		"license.md"
 	],
 	"type": "module",
 	"homepage": "https://github.com/james-pre/xsea",
