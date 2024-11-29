@@ -1,4 +1,3 @@
-
 # XSEA: Cross-Platform Single Executable Applications
 
 XSEA is a utility for generating Node.js Single Executable Applications (SEAs) cross-platform. At the moment, there is only a CLI, not an API.
