@@ -32,3 +32,17 @@ Generate executables for Windows on x64 and Arm:
 ```sh
 xsea src/my-program.js -o dist/my-program -t win-arm64 -t win-x64
 ```
+
+Generate a SEA for the Iron LTS version:
+
+```sh
+xsea src/my-program.js -o dist/my-program -t linux-x64 -N v20.18.1
+```
+
+## Limitations
+
+The platform and version resolution are dumb, if you mis-type the version (e.g. `20.18.1` instead of `v20.18.1`), it will not work, and has no support for resolving it (e.g. `v20` will not resolve the minor/patch and fails). Likewise for platform resolution.
+
+### Postject warnings
+
+You may see a bunch of `warning: ...`, you can safely ignore `warning: The signature seems corrupted!` and `warning: Can't find string offset for section name '...'`.
