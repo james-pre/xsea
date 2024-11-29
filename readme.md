@@ -19,10 +19,10 @@ Options:
     --help,-h               Show this help message
     --quiet,-q              Hide non-error output
     --verbose,-w            Show all output
-    --output, -o <prefix>   The output prefix
+    --output,-o <prefix>    The output prefix
     --clean                 Remove temporary files
     --node,-N <version>     Specify the Node version
-    --target, -t <target>   Specify which targets(s) to build for (e.g. linux-arm64, win-x64)
+    --target,-t <target>    Specify which targets(s) to build for (e.g. linux-arm64, win-x64)
 ```
 
 #### Examples
