@@ -16,5 +16,5 @@ declare module 'postject' {
 		sentinelFuse?: string;
 	}
 
-	function inject(filename: string, resourceName: string, resourceData: Buffer, options: InjectOptions): void;
+	function inject(filename: string, resourceName: string, resourceData: Buffer, options: InjectOptions): Promise<void>;
 }
