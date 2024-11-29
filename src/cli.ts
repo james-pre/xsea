@@ -6,6 +6,7 @@ import { parseArgs } from 'node:util';
 import { inject } from 'postject';
 import { extract } from 'tar';
 import AdmZip from 'adm-zip';
+import { homedir } from 'node:os';
 
 const { values: options, positionals } = parseArgs({
 	options: {
@@ -20,7 +21,7 @@ const { values: options, positionals } = parseArgs({
 	allowPositionals: true,
 });
 
-const tempDir = '/tmp/xsea';
+const tempDir = join(homedir(), '.cache/xsea');
 
 const _log = (...text: any[]) => options.verbose && console.log('[debug]', ...text);
 
