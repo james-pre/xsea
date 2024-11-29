@@ -1,0 +1,54 @@
+{
+	"name": "xsea",
+	"version": "0.0.0-prototype",
+	"description": "Cross-platform SEA generation",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"keywords": [],
+	"bin": "dist/cli.js",
+	"files": [
+		"dist",
+		"src",
+		"license.md",
+		"tsconfig.json"
+	],
+	"type": "module",
+	"homepage": "https://github.com/james-pre/xsea",
+	"author": "James Prevett <jp@jamespre.dev> (https://jamespre.dev)",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/james-pre/xsea.git"
+	},
+	"bugs": {
+		"url": "https://github.com/james-pre/xsea/issues"
+	},
+	"engines": {
+		"node": ">= 16"
+	},
+	"exports": {
+		".": "./dist/index.js",
+		"./*": "./dist/*"
+	},
+	"scripts": {
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"lint": "tsc -p tsconfig.json --noEmit && eslint src",
+		"build": "tsconfig -p tsconfig.json",
+		"prepublishOnly": "npm run build"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.15.0",
+		"@types/node": "^22.10.1",
+		"eslint": "^9.15.0",
+		"globals": "^15.12.0",
+		"prettier": "^3.4.1",
+		"typescript": "^5.7.2",
+		"typescript-eslint": "^8.16.0"
+	},
+	"dependencies": {
+		"@types/tar": "^6.1.13",
+		"postject": "^1.0.0-alpha.6",
+		"tar": "^7.4.3"
+	}
+}
