@@ -15,7 +15,7 @@ const { values: options, positionals } = parseArgs({
 		output: { short: 'o', type: 'string' },
 		clean: { type: 'boolean', default: false },
 		node: { short: 'N', type: 'string', default: 'v' + process.versions.node },
-		platform: { short: 'P', type: 'string', multiple: true, default: [process.platform + '-' + process.arch] },
+		target: { short: 't', type: 'string', multiple: true, default: [process.platform + '-' + process.arch] },
 	},
 	allowPositionals: true,
 });
@@ -34,7 +34,7 @@ Options:
     --output, -o <prefix>   The output prefix
     --clean                 Remove temporary files
     --node,-N <version>     Specify the Node version
-    --platform, -P <plat>   Specify which platform(s) to build for
+    --target, -t <target>   Specify which targets(s) to build for (e.g. linux-arm64, win-x64)
 `);
 	process.exit(0);
 }
@@ -85,7 +85,7 @@ const blob = fs.readFileSync(blobPath);
 fs.mkdirSync(prefix.endsWith('/') ? prefix : dirname(prefix), { recursive: true });
 
 async function getNode(archiveBase: string) {
-	const isWindows = archiveBase.startsWith('node-win');
+	const isWindows = archiveBase.includes('win');
 
 	const archiveFile = archiveBase + '.' + (isWindows ? 'zip' : 'tar.gz');
 	const archivePath = join(tempDir, archiveFile);
@@ -112,10 +112,11 @@ async function getNode(archiveBase: string) {
 	_log('Extracting:', archiveFile);
 	if (isWindows) {
 		const zip = new AdmZip(archivePath);
-		const data = zip.readFile(isWindows ? 'node.exe' : 'bin/node');
+		const data = zip.readFile(archiveBase + '/node.exe');
 		if (!data) {
 			throw ['Missing node executable:', archiveBase];
 		}
+
 		fs.writeFileSync(execName, data);
 	} else {
 		await extract({
@@ -154,6 +155,6 @@ async function buildSEA(target: string) {
 	});
 }
 
-for (const target of options.platform) {
+for (const target of options.target) {
 	await buildSEA(target);
 }
