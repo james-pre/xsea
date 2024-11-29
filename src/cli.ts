@@ -15,6 +15,7 @@ const { values: options, positionals } = parseArgs({
 		verbose: { short: 'w', type: 'boolean', default: false },
 		output: { short: 'o', type: 'string' },
 		clean: { type: 'boolean', default: false },
+		keep: { type: 'boolean', default: false },
 		node: { short: 'N', type: 'string', default: 'v' + process.versions.node },
 		target: { short: 't', type: 'string', multiple: true, default: [process.platform + '-' + process.arch] },
 	},
@@ -33,7 +34,8 @@ Options:
     --quiet,-q              Hide non-error output
     --verbose,-w            Show all output
     --output,-o <prefix>    The output prefix
-    --clean                 Remove temporary files
+    --clean                 Remove cached files
+	--keep                  Keep intermediate files
     --node,-N <version>     Specify the Node version
     --target,-t <target>    Specify which targets(s) to build for (e.g. linux-arm64, win-x64)
 `);
@@ -125,7 +127,17 @@ async function getNode(archiveBase: string) {
 			gzip: true,
 			cwd: join(tempDir, 'node'),
 		});
-		fs.copyFileSync(join(tempDir, 'node', archiveBase, isWindows ? 'node.exe' : 'bin/node'), execName);
+		const extracted = join(tempDir, 'node', archiveBase);
+		fs.copyFileSync(join(extracted, isWindows ? 'node.exe' : 'bin/node'), execName);
+		if (!options.keep) {
+			_log('Removing intermediate:', extracted);
+			fs.rmSync(extracted, { recursive: true, force: true });
+		}
+	}
+
+	if (!options.keep) {
+		_log('Removing intermediate:', archivePath);
+		fs.unlinkSync(archivePath);
 	}
 }
 
