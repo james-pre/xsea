@@ -1,6 +1,6 @@
 {
 	"name": "xsea",
-	"version": "0.0.0-prototype",
+	"version": "0.0.1",
 	"description": "Cross-platform SEA generation",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
