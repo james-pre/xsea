@@ -162,7 +162,7 @@ async function buildSEA(target: string) {
 	fs.mkdirSync(dirname(seaPath), { recursive: true });
 	fs.copyFileSync(join(tempDir, archiveBase), seaPath);
 
-	if (target == 'darwin-arm64') {
+	if (target == 'darwin-arm64' && process.platform == 'darwin') {
 		_log('Removing signature:', seaPath);
 		execSync(`codesign --remove-signature "${seaPath}"`);
 	}
@@ -173,7 +173,7 @@ async function buildSEA(target: string) {
 		sentinelFuse: 'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2',
 	});
 
-	if (target == 'darwin-arm64') {
+	if (target == 'darwin-arm64' && process.platform == 'darwin') {
 		_log('Signing binary:', seaPath);
 		execSync(`codesign --sign - "${seaPath}"`);
 	}
