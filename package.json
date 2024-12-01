@@ -1,6 +1,6 @@
 {
 	"name": "xsea",
-	"version": "0.0.4",
+	"version": "0.1.0",
 	"description": "Cross-platform SEA generation",
 	"keywords": [],
 	"bin": {
