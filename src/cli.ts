@@ -1,4 +1,4 @@
-#!/bin/env node
+#!/usr/bin/env node
 import { execSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import { dirname, join, parse } from 'node:path';
@@ -88,7 +88,7 @@ const blob = fs.readFileSync(blobPath);
 fs.mkdirSync(prefix.endsWith('/') ? prefix : dirname(prefix), { recursive: true });
 
 async function getNode(archiveBase: string) {
-	const isWindows = archiveBase.includes('win');
+	const isWindows = archiveBase.includes('-win');
 
 	const archiveFile = archiveBase + '.' + (isWindows ? 'zip' : 'tar.gz');
 	const archivePath = join(tempDir, archiveFile);
@@ -161,11 +161,23 @@ async function buildSEA(target: string) {
 
 	fs.mkdirSync(dirname(seaPath), { recursive: true });
 	fs.copyFileSync(join(tempDir, archiveBase), seaPath);
+
+	if (target=="darwin-arm64") {
+		_log('Removing signature :', seaPath);
+		execSync(`codesign --remove-signature "${seaPath}"`)
+	}
+
 	_log('Injecting:', seaPath);
 	await inject(seaPath, 'NODE_SEA_BLOB', blob, {
 		machoSegmentName: 'NODE_SEA',
 		sentinelFuse: 'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2',
 	});
+
+	if (target=="darwin-arm64") {
+		_log('Signing binary :', seaPath);
+		execSync(`codesign --sign - "${seaPath}"`)
+	}
+	
 }
 
 for (const target of options.target) {
