@@ -2,18 +2,18 @@
 	"name": "xsea",
 	"version": "0.1.0",
 	"description": "Cross-platform SEA generation",
+	"license": "LGPL-3.0-or-later",
 	"keywords": [],
 	"bin": {
 		"xsea": "dist/cli.js"
 	},
 	"files": [
 		"dist",
-		"license.md"
+		"LICENSE.md"
 	],
 	"type": "module",
 	"homepage": "https://github.com/james-pre/xsea",
 	"author": "James Prevett <jp@jamespre.dev> (https://jamespre.dev)",
-	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/james-pre/xsea.git"
