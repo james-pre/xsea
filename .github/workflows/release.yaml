@@ -11,6 +11,7 @@ jobs:
         needs: ci
         permissions:
             id-token: write
+            contents: write
         steps:
             - name: Checkout
               uses: actions/checkout@v5

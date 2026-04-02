@@ -36,15 +36,15 @@
 		"prepublishOnly": "npm run build"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.15.0",
+		"@eslint/js": "^10.0.1",
 		"@types/adm-zip": "^0.5.7",
 		"@types/node": "^22.10.1",
 		"@types/tar": "^6.1.13",
-		"eslint": "^9.15.0",
+		"eslint": "^10.1.0",
 		"globals": "^15.12.0",
 		"prettier": "^3.4.1",
-		"typescript": "^5.7.2",
-		"typescript-eslint": "^8.16.0"
+		"typescript": "^6.0.2",
+		"typescript-eslint": "^8.58.0"
 	},
 	"dependencies": {
 		"adm-zip": "^0.5.16",

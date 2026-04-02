@@ -1,8 +1,9 @@
 import tseslint from 'typescript-eslint';
 import eslint from '@eslint/js';
 import globals from 'globals';
+import { defineConfig } from 'eslint/config';
 
-export default tseslint.config({
+export default defineConfig({
 	name: 'xsea',
 	extends: [eslint.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
 	files: ['src/**/*.ts'],
