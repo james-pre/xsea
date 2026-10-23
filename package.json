@@ -25,7 +25,7 @@
 		"node": ">= 16"
 	},
 	"exports": {
-		".": "./dist/lib.js",
+		".": "./dist/index.js",
 		"./*": "./dist/*.js"
 	},
 	"scripts": {
