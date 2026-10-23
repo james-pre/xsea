@@ -46,6 +46,30 @@ Generate a SEA for the Iron LTS version:
 xsea src/my-program.js -o dist/my-program -t linux-x64 -N v20.18.1
 ```
 
+#### Apps with native addons
+
+A SEA can only load native addons (`.node` files) from real files. With `--app`, XSEA embeds a whole directory, including its `node_modules`, and the executable extracts it to the user's cache on first run, then imports the entry point from there:
+
+```sh
+xsea --app build/app dist/main.js -o dist/my-program -t linux-x64
+```
+
+The entry point is relative to the app directory, and `--name` sets the name of the app's directory in the cache.
+
+## API
+
+The same features are available as a library:
+
+```ts
+import { build, buildApp, readConfig } from 'xsea';
+
+await build({ main: 'src/my-program.js', prefix: 'dist/my-program-', targets: ['linux-x64', 'win-x64'] });
+
+await buildApp({ root: 'build/app', main: 'dist/main.js', name: 'my-program', prefix: 'dist/my-program-' });
+```
+
+Both return the paths of the executables. `config` takes a SEA configuration (e.g. `assets`, `mainFormat` or `execArgv`), and `readConfig` reads one from a file, resolving asset paths relative to it.
+
 ## Limitations
 
 The platform and version resolution are dumb, if you mis-type the version (e.g. `20.18.1` instead of `v20.18.1`), it will not work, and has no support for resolving it (e.g. `v20` will not resolve the minor/patch and fails). Likewise for platform resolution.

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-import { parse } from 'node:path';
+import { basename, parse, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { buildApp } from './app.js';
 import { build, clean, currentNode, host, readConfig } from './lib.js';
 
 const { values: options, positionals } = parseArgs({
@@ -10,6 +11,8 @@ const { values: options, positionals } = parseArgs({
 		verbose: { short: 'w', type: 'boolean', default: false },
 		output: { short: 'o', type: 'string' },
 		config: { short: 'c', type: 'string' },
+		app: { short: 'a', type: 'string' },
+		name: { short: 'n', type: 'string' },
 		clean: { type: 'boolean', default: false },
 		keep: { type: 'boolean', default: false },
 		node: { short: 'N', type: 'string', default: currentNode },
@@ -29,6 +32,8 @@ Options:
     --verbose,-w            Show all output
     --output,-o <prefix>    The output prefix
     --config,-c <path>      A SEA configuration to merge in (e.g. assets, mainFormat, execArgv)
+    --app,-a <dir>          Embed a whole directory (e.g. with native addons), and run the entry point from it
+    --name,-n <name>        The name of the app's directory in the user's cache (default: the directory's name)
     --clean                 Remove cached files
     --keep                  Keep intermediate files
     --node,-N <version>     Specify the Node version
@@ -53,21 +58,26 @@ if (positionals.length != 1) {
 	process.exit(1);
 }
 
-let prefix = options.output ?? parse(positionals[0]).name;
+const name = options.name ?? (options.app ? basename(resolve(options.app)) : parse(positionals[0]).name);
+
+let prefix = options.output ?? name;
 if (/\w$/.test(prefix)) prefix += '-';
 debug('Prefix:', prefix);
 
+const buildOptions = {
+	main: positionals[0],
+	prefix,
+	node: options.node,
+	targets: options.target,
+	config: options.config ? readConfig(options.config) : {},
+	keep: options.keep,
+	quiet: options.quiet,
+	debug,
+};
+
 try {
-	await build({
-		main: positionals[0],
-		prefix,
-		node: options.node,
-		targets: options.target,
-		config: options.config ? readConfig(options.config) : {},
-		keep: options.keep,
-		quiet: options.quiet,
-		debug,
-	});
+	if (options.app) await buildApp({ ...buildOptions, root: options.app, name });
+	else await build(buildOptions);
 } catch (error) {
 	console.error(error instanceof Error ? error.message : error);
 	process.exit(1);
