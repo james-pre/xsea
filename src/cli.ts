@@ -1,12 +1,15 @@
 #!/usr/bin/env node
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
-import { dirname, join, parse } from 'node:path';
+import { dirname, join, parse, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { inject } from 'postject';
 import { extract } from 'tar';
 import AdmZip from 'adm-zip';
 import { homedir } from 'node:os';
+
+/** The current platform, named like a target */
+const host = (process.platform == 'win32' ? 'win' : process.platform) + '-' + process.arch;
 
 const { values: options, positionals } = parseArgs({
 	options: {
@@ -14,10 +17,11 @@ const { values: options, positionals } = parseArgs({
 		quiet: { short: 'q', type: 'boolean', default: false },
 		verbose: { short: 'w', type: 'boolean', default: false },
 		output: { short: 'o', type: 'string' },
+		config: { short: 'c', type: 'string' },
 		clean: { type: 'boolean', default: false },
 		keep: { type: 'boolean', default: false },
 		node: { short: 'N', type: 'string', default: 'v' + process.versions.node },
-		target: { short: 't', type: 'string', multiple: true, default: [process.platform + '-' + process.arch] },
+		target: { short: 't', type: 'string', multiple: true, default: [host] },
 	},
 	allowPositionals: true,
 });
@@ -34,6 +38,7 @@ Options:
     --quiet,-q              Hide non-error output
     --verbose,-w            Show all output
     --output,-o <prefix>    The output prefix
+    --config,-c <path>      A SEA configuration to merge in (e.g. assets, mainFormat, execArgv)
     --clean                 Remove cached files
 	--keep                  Keep intermediate files
     --node,-N <version>     Specify the Node version
@@ -73,17 +78,38 @@ fs.mkdirSync(join(tempDir, 'node'), { recursive: true });
 const configPath = join(tempDir, entryName + '.json'),
 	blobPath = join(tempDir, entryName + '.blob');
 
-fs.writeFileSync(
-	configPath,
-	JSON.stringify({
-		main: positionals[0],
-		output: blobPath,
-		disableExperimentalSEAWarning: true,
-	})
-);
-execSync(process.execPath + ' --experimental-sea-config ' + configPath, { stdio: 'inherit' });
+const userConfig: Record<string, any> = options.config ? JSON.parse(fs.readFileSync(options.config, 'utf8')) : {};
 
-const blob = fs.readFileSync(blobPath);
+// Asset paths are relative to the configuration file, so it works from any directory.
+if (options.config && userConfig.assets) {
+	const configDir = dirname(resolve(options.config));
+	for (const [key, path] of Object.entries<string>(userConfig.assets)) {
+		userConfig.assets[key] = resolve(configDir, path);
+	}
+}
+
+if ((userConfig.useCodeCache || userConfig.useSnapshot) && options.target.some(target => target != host)) {
+	console.error('useCodeCache and useSnapshot only work when building for the current platform:', host);
+	process.exit(1);
+}
+
+if (options.node != 'v' + process.versions.node) {
+	console.warn(`Warning: a SEA must be built by the same Node.js version it runs on, but ${options.node} was requested and this is v${process.versions.node}`);
+}
+
+const [major, minor] = process.versions.node.split('.').map(Number);
+
+/** Whether this Node.js can build and inject a SEA itself (v25.5.0+), instead of needing postject */
+const hasBuildSea = major > 25 || (major == 25 && minor >= 5);
+
+const seaConfig = { disableExperimentalSEAWarning: true, ...userConfig, main: positionals[0] };
+
+let blob: Buffer | undefined;
+if (!hasBuildSea) {
+	fs.writeFileSync(configPath, JSON.stringify({ ...seaConfig, output: blobPath }));
+	execFileSync(process.execPath, ['--experimental-sea-config', configPath], { stdio: 'inherit' });
+	blob = fs.readFileSync(blobPath);
+}
 
 fs.mkdirSync(prefix.endsWith('/') ? prefix : dirname(prefix), { recursive: true });
 
@@ -160,22 +186,31 @@ async function buildSEA(target: string) {
 	}
 
 	fs.mkdirSync(dirname(seaPath), { recursive: true });
-	fs.copyFileSync(join(tempDir, archiveBase), seaPath);
+	const signsBinary = target == 'darwin-arm64' && process.platform == 'darwin';
 
-	if (target == 'darwin-arm64' && process.platform == 'darwin') {
-		_log('Removing signature:', seaPath);
-		execSync(`codesign --remove-signature "${seaPath}"`);
+	if (!blob) {
+		const targetConfigPath = join(tempDir, `${entryName}-${target}.json`);
+		fs.writeFileSync(targetConfigPath, JSON.stringify({ ...seaConfig, executable: join(tempDir, archiveBase), output: resolve(seaPath) }));
+		_log('Building:', seaPath);
+		execFileSync(process.execPath, ['--build-sea', targetConfigPath], { stdio: options.quiet ? 'pipe' : 'inherit' });
+	} else {
+		fs.copyFileSync(join(tempDir, archiveBase), seaPath);
+
+		if (signsBinary) {
+			_log('Removing signature:', seaPath);
+			execFileSync('codesign', ['--remove-signature', seaPath]);
+		}
+
+		_log('Injecting:', seaPath);
+		await inject(seaPath, 'NODE_SEA_BLOB', blob, {
+			machoSegmentName: 'NODE_SEA',
+			sentinelFuse: 'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2',
+		});
 	}
 
-	_log('Injecting:', seaPath);
-	await inject(seaPath, 'NODE_SEA_BLOB', blob, {
-		machoSegmentName: 'NODE_SEA',
-		sentinelFuse: 'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2',
-	});
-
-	if (target == 'darwin-arm64' && process.platform == 'darwin') {
+	if (signsBinary) {
 		_log('Signing binary:', seaPath);
-		execSync(`codesign --sign - "${seaPath}"`);
+		execFileSync('codesign', ['--sign', '-', seaPath]);
 	}
 }
 

@@ -20,6 +20,7 @@ Options:
     --quiet,-q              Hide non-error output
     --verbose,-w            Show all output
     --output,-o <prefix>    The output prefix
+    --config,-c <path>      A SEA configuration to merge in (e.g. assets, mainFormat, execArgv)
     --clean                 Remove temporary files
     --node,-N <version>     Specify the Node version
     --target,-t <target>    Specify which targets(s) to build for (e.g. linux-arm64, win-x64)
